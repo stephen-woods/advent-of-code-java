@@ -3,10 +3,10 @@ package org.example;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.ArrayList;
 
 // --- Day 2: Red-Nosed Reports ---
 // Fortunately, the first location The Historians want to search isn't a long walk from the Chief Historian's office.
@@ -72,42 +72,20 @@ import java.util.ArrayList;
 //
 // Update your analysis by handling situations where the Problem Dampener can remove a single level from unsafe reports.
 // How many reports are now safe?
+//
+// Your puzzle answer was 577.
 public class Main {
     public static void main(String[] args) throws IOException {
         System.out.println("How many reports are safe?");
         System.out.println(partA());
-        System.out.println(partA1());
+
         System.out.println();
 
         System.out.println("How many reports are now safe");
         System.out.println(partB());
     }
 
-
     static int partA() throws IOException {
-
-        var count = 0;
-        try (var is = ClassLoader.getSystemResourceAsStream("input_a.txt");
-             var ir = new InputStreamReader(is);
-             var br = new BufferedReader(ir)) {
-
-            while (br.ready()) {
-                var line = br.readLine();
-                var levels = Arrays
-                        .stream(line.split("\\s+"))
-                        .mapToInt(Integer::parseInt)
-                        .toArray();
-
-                var safe = isSafeDirectionUnknown(levels, 0, 0);
-//                System.out.println( safe + " " + line);
-                if (safe) count++;
-            }
-
-        }
-        return count;
-    }
-
-    static int partA1() throws IOException {
 
         var count = 0;
         try (var is = ClassLoader.getSystemResourceAsStream("input_a.txt");
@@ -122,7 +100,6 @@ public class Main {
                         .collect(Collectors.toCollection(ArrayList::new));
 
                 var safe = findUnsafe(levels) < 0;
-//                System.out.println( safe + " " + line);
                 if (safe) {
                     count++;
                 }
@@ -152,23 +129,28 @@ public class Main {
                 if (unsafeIndex < 0) {
                     count++;
                 } else {
-                    var clone = new ArrayList<>(levels);
-                    clone.remove(unsafeIndex);
-                    if (findUnsafe(clone) < 0) {
-                        count++;
-                    } else {
-                        clone = new ArrayList<>(levels);
-                        clone.remove(unsafeIndex + 1);
+                    var safe = false;
+                    for (int i = 0; i < levels.size(); i++) {
+                        var clone = new ArrayList<>(levels);
+                        clone.remove(i);
                         if (findUnsafe(clone) < 0) {
-                            count++;
+                            safe = true;
+                            break;
                         }
                     }
+                    if (safe) count ++;
                 }
             }
         }
         return count;
     }
 
+    /**
+     * Finds the index of the first level that causes an unsafe scenario
+     *
+     * @param levels list of levels
+     * @return the index of the first unsafe level; if all levels are safe, return - 1
+     */
     static int findUnsafe(List<Integer> levels) {
         if (levels.size() <= 1) return -1;
 
@@ -205,52 +187,5 @@ public class Main {
             return (a < b && Math.abs(a - b) <= 3);
         }
         return (a > b && Math.abs(a - b) <= 3);
-    }
-
-
-    /**
-     * Check to see if the sequence of levels is unsafe when we don't know if it is ascending or descending yet.
-     *
-     * @param levels    levels to compare
-     * @param start     starting index into levels array
-     * @param forgive   number of violations that are acceptable
-     * @return true if level is considered safe
-     */
-    static boolean isSafeDirectionUnknown(int[] levels,
-                                          int start,
-                                          int forgive) {
-
-        if (levels[start] == levels[start + 1]) {
-            if (forgive > 0) return isSafeDirectionUnknown(levels, start + 1, forgive - 1);
-            return false;
-        }
-
-        if (levels[start] > levels[start + 1]) return isSafeDirectionKnown(levels, start, forgive, false);
-        return isSafeDirectionKnown(levels, start, forgive, true);
-    }
-
-    /**
-     * Check to see if the sequence of levels is unsafe when ascending or descending has been determined.
-     *
-     * @param levels    levels to compare
-     * @param start     starting index into levels array
-     * @param forgive   number of violations that are acceptable
-     * @param ascending true if the sequence must be ascending to be safe; false otherwise
-     * @return true if level is considered safe
-     */
-    static boolean isSafeDirectionKnown(int[] levels,
-                                        int start,
-                                        int forgive,
-                                        boolean ascending) {
-        for (int i = start; i < levels.length - 1; i++) {
-            var safe = isSafe(levels[i], levels[i + 1], ascending);
-            if (!safe) {
-                if (forgive > 0) {
-                    return isSafeDirectionKnown(levels, start + 1, forgive - 1, ascending);
-                }
-                return false;
-            }
-        }
-        return true;
     }
 }
