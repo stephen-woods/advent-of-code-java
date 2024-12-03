@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.ArrayList;
 
 // --- Day 2: Red-Nosed Reports ---
 // Fortunately, the first location The Historians want to search isn't a long walk from the Chief Historian's office.
@@ -73,11 +76,13 @@ public class Main {
     public static void main(String[] args) throws IOException {
         System.out.println("How many reports are safe?");
         System.out.println(partA());
+        System.out.println(partA1());
         System.out.println();
 
         System.out.println("How many reports are now safe");
         System.out.println(partB());
     }
+
 
     static int partA() throws IOException {
 
@@ -94,6 +99,7 @@ public class Main {
                         .toArray();
 
                 var safe = isSafeDirectionUnknown(levels, 0, 0);
+//                System.out.println( safe + " " + line);
                 if (safe) count++;
             }
 
@@ -101,35 +107,10 @@ public class Main {
         return count;
     }
 
-    static boolean isSafe(int[] levels) {
-        if (levels[0] == levels[1]) {
-            return false;
-        }
-
-        if (levels[0] > levels[1]) {
-            // Descending
-            for (int i = 1; i < levels.length; i++) {
-                var curr = levels[i];
-                var prev = levels[i - 1];
-
-                if (curr >= prev || curr < prev - 3) return false;
-            }
-        } else {
-            // Ascending
-            for (int i = 1; i < levels.length; i++) {
-                var curr = levels[i];
-                var prev = levels[i - 1];
-
-                if (curr <= prev || curr > prev + 3) return false;
-            }
-        }
-        return true;
-    }
-
-    static int partB() throws IOException {
+    static int partA1() throws IOException {
 
         var count = 0;
-        try (var is = ClassLoader.getSystemResourceAsStream("sample.txt");
+        try (var is = ClassLoader.getSystemResourceAsStream("input_a.txt");
              var ir = new InputStreamReader(is);
              var br = new BufferedReader(ir)) {
 
@@ -137,16 +118,95 @@ public class Main {
                 var line = br.readLine();
                 var levels = Arrays
                         .stream(line.split("\\s+"))
-                        .mapToInt(Integer::parseInt)
-                        .toArray();
+                        .map(Integer::valueOf)
+                        .collect(Collectors.toCollection(ArrayList::new));
 
-                var safe = isSafeDirectionUnknown(levels, 0, 1);
-                if (safe) count++;
+                var safe = findUnsafe(levels) < 0;
+//                System.out.println( safe + " " + line);
+                if (safe) {
+                    count++;
+                }
             }
 
         }
         return count;
     }
+
+
+    static int partB() throws IOException {
+
+        var count = 0;
+        try (var is = ClassLoader.getSystemResourceAsStream("input_a.txt");
+             var ir = new InputStreamReader(is);
+             var br = new BufferedReader(ir)) {
+
+
+            while (br.ready()) {
+                var line = br.readLine();
+                var levels = Arrays
+                        .stream(line.split("\\s+"))
+                        .map(Integer::valueOf)
+                        .collect(Collectors.toCollection(ArrayList::new));
+
+                var unsafeIndex = findUnsafe(levels);
+                if (unsafeIndex < 0) {
+                    count++;
+                } else {
+                    var clone = new ArrayList<>(levels);
+                    clone.remove(unsafeIndex);
+                    if (findUnsafe(clone) < 0) {
+                        count++;
+                    } else {
+                        clone = new ArrayList<>(levels);
+                        clone.remove(unsafeIndex + 1);
+                        if (findUnsafe(clone) < 0) {
+                            count++;
+                        }
+                    }
+                }
+            }
+        }
+        return count;
+    }
+
+    static int findUnsafe(List<Integer> levels) {
+        if (levels.size() <= 1) return -1;
+
+        int first = levels.get(0);
+        int second = levels.get(1);
+
+        if (first == second) {
+            return 0;
+        }
+
+        var ascending = first < second;
+
+        for (int i = 0; i < levels.size() - 1; i++) {
+            var safe = isSafe(levels.get(i), levels.get(i + 1), ascending);
+            if (!safe) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Check to see if the pair of levels is considered safe.
+     *
+     * @param a         current level
+     * @param b         next level
+     * @param ascending true if the sequence must be ascending to be safe; false otherwise
+     * @return true if the pair is considered safe
+     */
+    static boolean isSafe(int a,
+                          int b,
+                          boolean ascending) {
+        if (ascending) {
+            return (a < b && Math.abs(a - b) <= 3);
+        }
+        return (a > b && Math.abs(a - b) <= 3);
+    }
+
 
     /**
      * Check to see if the sequence of levels is unsafe when we don't know if it is ascending or descending yet.
@@ -192,22 +252,5 @@ public class Main {
             }
         }
         return true;
-    }
-
-    /**
-     * Check to see if the pair of levels is considered safe.
-     *
-     * @param a         current level
-     * @param b         next level
-     * @param ascending true if the sequence must be ascending to be safe; false otherwise
-     * @return true if the pair is considered safe
-     */
-    static boolean isSafe(int a,
-                          int b,
-                          boolean ascending) {
-        if (ascending) {
-            return (a < b && Math.abs(a - b) <= 3);
-        }
-        return (a > b && Math.abs(a - b) <= 3);
     }
 }
