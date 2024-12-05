@@ -1,11 +1,3 @@
-package org.example;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 
 // --- Day 1: Historian Hysteria ---
 // The Chief Historian is always present for the big Christmas sleigh launch, but
@@ -127,6 +119,16 @@ import java.util.HashMap;
 // Once again consider your left and right lists. What is their similarity score?
 //
 // Your puzzle answer was 23387399.
+
+package org.example;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+
 public class Main {
     public static void main(String[] args) throws IOException {
 
