@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.IntStream;
+import java.util.function.Function;
 
 public class Puzzle {
     List<List<Character>> underlying;
@@ -14,10 +14,11 @@ public class Puzzle {
     int[] dx = {-1, -1, 0, 1, 1, 1, 0, -1};
     int[] dy = {0, 1, 1, 1, 0, -1, -1, -1};
 
+
     private Puzzle(List<List<Character>> underlying) {
         this.underlying = underlying;
         this.height = underlying.size();
-        this.width = underlying.getFirst().size();;
+        this.width = underlying.getFirst().size();
     }
 
     public int getWidth() {
@@ -37,14 +38,14 @@ public class Puzzle {
         return (x < 0 || y < 0 || x >= width || y >= height);
     }
 
-    public int spinCheck(int x, int y, String word) {
+    public int checkPartA(int x, int y, String word) {
         var matches = 0;
 
         char puzzleChar = get(x, y);
         char wordChar = word.charAt(0);
         if (puzzleChar != wordChar) return 0;
 
-        for (int i = 0; i < 8; i++) {
+        for (int i = 0; i < dx.length; i++) {
             var xx = x + dx[i];
             var yy = y + dy[i];
             var found = true;
@@ -68,6 +69,27 @@ public class Puzzle {
             if (found) matches++;
         }
         return matches;
+    }
+
+    public int checkPartB(int x, int y) {
+        char puzzleChar = get(x, y);
+        if (puzzleChar != 'A') return 0;
+
+        boolean condition1 = checkChar(
+                get(x - 1, y - 1),
+                get(x + 1, y + 1));
+
+        boolean condition2 =  checkChar(
+                get(x + 1, y - 1),
+                get(x - 1, y + 1)
+        );
+
+        return (condition1 && condition2) ? 1 : 0;
+    }
+
+    boolean checkChar(Character c1, Character c2) {
+        if (c1 == null || c2 == null) return false;
+        return (c1 == 'M' || c1 == 'S') && (c2 == 'M' || c2 == 'S') && (c1 != c2);
     }
 
     public static Puzzle from(BufferedReader br) throws IOException {
