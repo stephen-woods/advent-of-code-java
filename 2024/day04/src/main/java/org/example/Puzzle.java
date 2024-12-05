@@ -11,6 +11,9 @@ public class Puzzle {
     int height;
     int width;
 
+    int[] dx = {-1, -1, 0, 1, 1, 1, 0, -1};
+    int[] dy = {0, 1, 1, 1, 0, -1, -1, -1};
+
     private Puzzle(List<List<Character>> underlying) {
         this.underlying = underlying;
         this.height = underlying.size();
@@ -30,75 +33,41 @@ public class Puzzle {
         return underlying.get(y).get(x);
     }
 
-    public int starOfWord(int x, int y, String word) {
-        int ret = 0;
-
-        // Horizontal forward and maybe backward if necessary
-        var hf = IntStream
-                .iterate(0, i -> i < word.length(), i -> i + 1)
-                .allMatch(step -> horizontalMatch(x, y, word, step, step));
-
-        var h = hf || IntStream
-                .iterate(word.length() - 1, i -> i >= 0, i -> i - 1)
-                .allMatch(step -> horizontalMatch(x, y, word, step, word.length() - 1 - step));
-        if (h) ret++;
-
-
-        // Vertical forward and maybe backward if necessary
-        var vf = IntStream
-                .range(0, word.length())
-                .allMatch(step -> verticalMatch(x, y, word, step, step));
-
-        var v = vf || IntStream
-                .iterate(word.length() - 1, i -> i >= 0, i -> i - 1)
-                .allMatch(step -> verticalMatch(x, y, word, step, word.length() - 1 - step));
-        if (v) ret++;
-
-        // DiagonalUp forward and maybe backward if necessary
-        var duf = IntStream
-                .range(0, word.length())
-                .allMatch(step -> diagUpMatch(x, y, word, step, step));
-
-        var du = duf || IntStream
-                .iterate(word.length() - 1, i -> i >= 0, i -> i - 1)
-                .allMatch(step -> diagUpMatch(x, y, word, step, word.length() - 1 - step));
-        if (du) ret++;
-
-        // DiagonalDown forward and maybe backward if necessary
-        var ddf = IntStream
-                .range(0, word.length())
-                .allMatch(step -> diagDownMatch(x, y, word, step, step));
-
-        var dd = ddf || IntStream
-                .iterate(word.length() - 1, i -> i >= 0, i -> i - 1)
-                .allMatch(step -> diagDownMatch(x, y, word, step, word.length() - 1 - step));
-        if (du) ret++;
-
-        return ret;
+    public boolean outOfBounds(int x, int y) {
+        return (x < 0 || y < 0 || x >= width || y >= height);
     }
 
-    boolean horizontalMatch(int x, int y, String word, int puzzleStep, int wordStep) {
-        var puzzleChar = get(x + puzzleStep, y);
-        Character wordChar = word.charAt(wordStep);
-        return puzzleChar == wordChar;
-    }
+    public int spinCheck(int x, int y, String word) {
+        var matches = 0;
 
-    boolean verticalMatch(int x, int y, String word, int puzzleStep, int wordStep) {
-        var puzzleChar = get(x, y + puzzleStep);
-        Character wordChar = word.charAt(wordStep);
-        return puzzleChar == wordChar;
-    }
+        char puzzleChar = get(x, y);
+        char wordChar = word.charAt(0);
+        if (puzzleChar != wordChar) return 0;
 
-    boolean diagUpMatch(int x, int y, String word, int puzzleStep,  int wordStep) {
-        var puzzleChar = get(x + puzzleStep, y + puzzleStep);
-        Character wordChar = word.charAt(wordStep);
-        return puzzleChar == wordChar;
-    }
+        for (int i = 0; i < 8; i++) {
+            var xx = x + dx[i];
+            var yy = y + dy[i];
+            var found = true;
+            for (int c = 1; c < word.length(); c++) {
 
-    boolean diagDownMatch(int x, int y, String word, int puzzleStep,  int wordStep) {
-        var puzzleChar = get(x + puzzleStep, y - puzzleStep);
-        Character wordChar = word.charAt(wordStep);
-        return puzzleChar == wordChar;
+                if (outOfBounds(xx, yy)) {
+                    found = false;
+                    break;
+                }
+
+                puzzleChar = get(xx, yy);
+                wordChar = word.charAt(c);
+                if (puzzleChar != wordChar) {
+                    found = false;
+                    break;
+                }
+
+                xx += dx[i];
+                yy += dy[i];
+            }
+            if (found) matches++;
+        }
+        return matches;
     }
 
     public static Puzzle from(BufferedReader br) throws IOException {

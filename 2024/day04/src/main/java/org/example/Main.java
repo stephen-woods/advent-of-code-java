@@ -68,13 +68,9 @@ public class Main {
         var answer = 0;
         for (int y = 0; y < puzzle.getHeight(); y++) {
             for (int x = 0; x < puzzle.getWidth(); x++) {
-                answer += puzzle.starOfWord(x, y, "XMAS");
+                answer += puzzle.spinCheck(x, y, "XMAS");
             }
         }
-
-        // 2552 is too low.
-
-
         return answer;
     }
 
